@@ -5,7 +5,7 @@ export const metadata = { title: "プライバシーポリシー" };
 export default function PrivacyPage() {
   return (
     <>
-      <PageHead title="プライバシーポリシー" en="Privacy Policy" />
+      <PageHead title="プライバシーポリシー" en="Privacy Policy" image="/images/photos/maple-stone.webp" />
       <div className="container narrow section" style={{ paddingTop: 32 }}>
         <h3>1. 取得する情報</h3><p>氏名（ニックネーム）、メールアドレス、ポイント購入履歴、鑑定予約・利用履歴、お問い合わせ内容を取得します。通話の音声は録音・保存しません。</p>
         <h3>2. 利用目的</h3><p>本サービスの提供、予約・鑑定に関するご連絡、本人確認、不正利用の防止、サービス改善のために利用します。</p>

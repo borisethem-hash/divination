@@ -16,7 +16,7 @@ export default function TermsPage() {
   ];
   return (
     <>
-      <PageHead title="利用規約" en="Terms" />
+      <PageHead title="利用規約" en="Terms" image="/images/photos/maple-stone.webp" />
       <div className="container narrow section" style={{ paddingTop: 32 }}>
         {items.map(([h, b]) => (<div key={h}><h3>{h}</h3><p>{b}</p></div>))}
         <p className="small muted">※本ページはテンプレートです。公開前に専門家の確認を受けた正式な規約に差し替えてください。</p>

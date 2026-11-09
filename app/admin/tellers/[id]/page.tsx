@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { readDb } from "@/lib/db";
 import { Flash } from "@/components/DashLayout";
-import { Portrait, TellerImage } from "@/components/Art";
+import { Portrait, TellerImage, PORTRAITS } from "@/components/Art";
 import { saveTellerAction, deleteTellerAction } from "@/app/actions/admin";
 import type { Teller } from "@/lib/types";
 
@@ -11,7 +11,7 @@ export default async function EditTeller({ params, searchParams }: { params: Pro
   const { err } = await searchParams;
   const db = readDb();
   const isNew = id === "new";
-  const t: Partial<Teller> = isNew ? { published: true, pricePerMin: 150, portrait: db.tellers.length % 8, sortOrder: db.tellers.length, methods: [], specialties: [], styles: [] } : db.tellers.find((x) => x.id === id) ?? notFound();
+  const t: Partial<Teller> = isNew ? { published: true, pricePerMin: 150, portrait: db.tellers.length % PORTRAITS.length, sortOrder: db.tellers.length, methods: [], specialties: [], styles: [] } : db.tellers.find((x) => x.id === id) ?? notFound();
   const u = !isNew ? db.users.find((x) => x.id === t.userId) : undefined;
   return (
     <>
@@ -51,8 +51,8 @@ export default async function EditTeller({ params, searchParams }: { params: Pro
         <div>
           <span className="label">イラスト（画像未設定時）</span>
           <div className="radio-cards" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))" }}>
-            {Array.from({ length: 8 }, (_, i) => (
-              <label key={i} style={{ padding: 4 }}><input type="radio" name="portrait" value={i} defaultChecked={t.portrait === i} /><span><div style={{ height: 72 }}><Portrait variant={i} /></div></span></label>
+            {PORTRAITS.map((p, i) => (
+              <label key={i} style={{ padding: 4 }} title={p.label}><input type="radio" name="portrait" value={i} defaultChecked={t.portrait === i} /><span><div style={{ height: 84 }}><Portrait variant={i} /></div><small className="muted" style={{ fontSize: 10 }}>{p.label}</small></span></label>
             ))}
           </div>
         </div>

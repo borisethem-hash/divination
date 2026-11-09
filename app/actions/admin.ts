@@ -6,7 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import { saveImage } from "@/lib/upload";
 import { notify, slugify, finishCall } from "@/lib/logic";
-import type { Post, TellerStatus, Review, Inquiry } from "@/lib/types";
+import type { Post, TellerStatus, Review, Inquiry, SiteBanner } from "@/lib/types";
 
 const enc = encodeURIComponent;
 const admin = () => requireRole("admin", "/admin");
@@ -140,7 +140,8 @@ export async function savePostAction(fd: FormData) {
   const err = updateDb((db) => {
     if (db.posts.some((p) => p.slug === slug && p.id !== id)) return "このURL（スラッグ）は既に使われています";
     const fields: Partial<Post> = {
-      type: fd.get("type") === "event" ? "event" : "news", title, slug,
+      type: fd.get("type") === "event" ? "event" : fd.get("type") === "column" ? "column" : "news", title, slug,
+      category: String(fd.get("category") ?? "").trim().slice(0, 20) || undefined,
       excerpt: String(fd.get("excerpt") ?? ""), body: String(fd.get("body") ?? ""),
       eventDate: String(fd.get("eventDate") ?? "") || undefined, published: !!fd.get("published"), updatedAt: nowIso(),
     };
@@ -157,6 +158,7 @@ export async function savePostAction(fd: FormData) {
   });
   if (err) back(err);
   revalidatePath("/news");
+  revalidatePath("/column");
   redirect(`/admin/posts?ok=${enc("保存しました")}`);
 }
 
@@ -239,4 +241,49 @@ export async function sendReviewRequestAction(fd: FormData) {
     if (t) notify(db, userId, `${t.name} 先生への口コミのお願い`, `いつもご利用ありがとうございます。${t.name} 先生の鑑定はいかがでしたか？ぜひ口コミをお寄せください。`, `/mypage/review/${tellerId}`);
   });
   redirect(`/admin/reviews?ok=${enc("口コミ依頼を送信しました")}`);
+}
+
+// ===== トップバナー =====
+export async function saveBannerAction(fd: FormData) {
+  await admin();
+  const id = String(fd.get("id") ?? "");
+  const back = (m: string) => redirect(`/admin/banners?err=${enc(m)}`);
+  const title = String(fd.get("title") ?? "").trim().slice(0, 40);
+  const link = String(fd.get("link") ?? "").trim();
+  if (!title) back("タイトルを入力してください");
+  // サイト内パスまたは http(s) のみ許可
+  if (link && !/^(https?:\/\/|\/(?![\/\\]))/.test(link)) back("リンク先は「/」から始まるサイト内のパス、または http(s):// から始まるURLを入力してください");
+  let image: string | undefined;
+  try { image = await saveImage(fd.get("image")); } catch (e) { back((e as Error).message); }
+  const err = updateDb((db) => {
+    const fields: Partial<SiteBanner> = {
+      label: String(fd.get("label") ?? "").trim().slice(0, 20),
+      title,
+      subtitle: String(fd.get("subtitle") ?? "").trim().slice(0, 60),
+      link: link || "/",
+      published: !!fd.get("published"),
+      sortOrder: Number(fd.get("sortOrder")) || 0,
+    };
+    if (id) {
+      const b = db.banners.find((x) => x.id === id);
+      if (!b) return "バナーが見つかりません";
+      Object.assign(b, fields);
+      if (image) b.image = image;
+    } else {
+      if (!image) return "新しいバナーには画像を選択してください";
+      db.banners.push({ ...(fields as SiteBanner), id: uid("b_"), image });
+    }
+    return null;
+  });
+  if (err) back(err);
+  revalidatePath("/");
+  redirect(`/admin/banners?ok=${enc("バナーを保存しました")}`);
+}
+
+export async function deleteBannerAction(fd: FormData) {
+  await admin();
+  const id = String(fd.get("id"));
+  updateDb((db) => { db.banners = db.banners.filter((b) => b.id !== id); });
+  revalidatePath("/");
+  redirect(`/admin/banners?ok=${enc("バナーを削除しました")}`);
 }

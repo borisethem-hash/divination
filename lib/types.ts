@@ -130,9 +130,12 @@ export interface AffiliateEarning {
   paid: boolean;
 }
 
+export type PostType = "news" | "event" | "column";
+
 export interface Post {
   id: string;
-  type: "news" | "event";
+  type: PostType;
+  category?: string; // コラムのカテゴリ（例：タロット・開運）
   title: string;
   slug: string;
   excerpt: string;
@@ -142,6 +145,18 @@ export interface Post {
   published: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** トップページのキャンペーン・特集バナー（管理画面から編集） */
+export interface SiteBanner {
+  id: string;
+  label: string; // 小見出し（例：CAMPAIGN）
+  title: string;
+  subtitle: string;
+  image: string; // /images/... またはアップロード画像
+  link: string;
+  published: boolean;
+  sortOrder: number;
 }
 
 export interface Inquiry {
@@ -191,6 +206,7 @@ export interface DB {
   affiliateClicks: AffiliateClick[];
   affiliateEarnings: AffiliateEarning[];
   posts: Post[];
+  banners: SiteBanner[];
   inquiries: Inquiry[];
   mails: Mail[];
   sessions: { token: string; userId: string; expiresAt: string }[];

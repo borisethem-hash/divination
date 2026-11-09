@@ -1,7 +1,7 @@
 import { readDb } from "@/lib/db";
 import { Flash } from "@/components/DashLayout";
 import { saveSettingsAction } from "@/app/actions/admin";
-import { Portrait } from "@/components/Art";
+import { GuideAvatar } from "@/components/Art";
 
 export default async function AdminSettings({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
@@ -23,7 +23,7 @@ export default async function AdminSettings({ searchParams }: { searchParams: Pr
           <div className="flex" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}>
             <div style={{ width: 90, height: 108, border: "1px solid var(--line)", overflow: "hidden", flex: "none" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {s.chatbotAvatar ? <img src={s.chatbotAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Portrait variant={8} />}
+              {s.chatbotAvatar ? <img src={s.chatbotAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <GuideAvatar />}
             </div>
             <div className="grow form">
               <div className="field"><label>案内係の名前</label><input className="input" name="chatbotName" defaultValue={s.chatbotName} maxLength={20} /></div>

@@ -16,7 +16,7 @@ export default function LawPage() {
   ];
   return (
     <>
-      <PageHead title="特定商取引法に基づく表記" en="Legal" />
+      <PageHead title="特定商取引法に基づく表記" en="Legal" image="/images/photos/maple-stone.webp" />
       <div className="container narrow section" style={{ paddingTop: 32 }}>
         <div className="table-wrap"><table className="table"><tbody>{rows.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}</tbody></table></div>
       </div>

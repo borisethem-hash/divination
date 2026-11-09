@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Portrait } from "./Art";
+import { GuideAvatar } from "./Art";
 
 type Choice = { label: string; go?: string; href?: string };
 type Msg = { from: "bot" | "me"; text: string; choices?: Choice[] };
@@ -15,6 +15,7 @@ const NODES: Record<string, { text: string; choices: Choice[] }> = {
     text: "どのようなことでお困りですか？\n下のボタンからお選びいただくか、自由にご質問を入力してください。",
     choices: [
       { label: "はじめての方へ", go: "first" },
+      { label: "占い師の選び方", go: "choose" },
       { label: "料金・ポイント", go: "price" },
       { label: "予約のしかた", go: "reserve" },
       { label: "通話がつながらない", go: "trouble" },
@@ -25,6 +26,10 @@ const NODES: Record<string, { text: string; choices: Choice[] }> = {
   first: {
     text: "月あかりは、アプリのインストール不要で、ブラウザから通話できる電話占いです🌙\n\n① 無料会員登録（1,000pt プレゼント）\n② 占い師を選んで鑑定リクエスト\n③ 占い師が承認したら予約確定\n④ 時間になったらマイページから入室\n\nという流れでご利用いただけます。",
     choices: [{ label: "無料会員登録へ", href: "/register" }, { label: "占い師を探す", href: "/tellers" }, INQUIRY, MENU],
+  },
+  choose: {
+    text: "お悩みに合わせて占術を選ぶのがおすすめです。\n\n・恋愛・復縁 → タロット／霊感・霊視\n・仕事・人生の転機 → 四柱推命／九星気学\n・相性・結婚 → 西洋占星術／宿曜占星術\n\n口コミやトップページの「本日の出演スケジュール」も参考にしてください。",
+    choices: [{ label: "恋愛が得意な占い師", href: "/tellers?specialty=恋愛" }, { label: "仕事が得意な占い師", href: "/tellers?specialty=仕事" }, { label: "今すぐ占える占い師", href: "/tellers?status=waiting" }, INQUIRY, MENU],
   },
   price: {
     text: "通話料は0円！お支払いは鑑定料のみです。\n鑑定料は占い師ごとに1分120円〜で、ポイント（1pt＝1円）でお支払いいただきます。\n\n・時間指定（20/30/45/60分）：定額で安心\n・従量制：通話を終えるまで1分単位",
@@ -49,12 +54,13 @@ const KEYWORDS: [RegExp, string][] = [
   [/予約|リクエスト|承認|今すぐ/, "reserve"],
   [/繋が|つなが|聞こえ|マイク|通話|音/, "trouble"],
   [/占い師.*(なりたい|応募|働)|募集|在籍|アフィリ/, "recruit"],
+  [/選び方|おすすめ|どの先生|誰に|相性/, "choose"],
   [/初めて|はじめて|使い方|登録/, "first"],
 ];
 
 function Avatar({ url, name }: { url?: string; name: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return url ? <img src={url} alt={`案内係${name}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Portrait variant={8} title={`案内係${name}`} />;
+  return url ? <img src={url} alt={`案内係${name}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <GuideAvatar title={`案内係${name}`} />;
 }
 
 export default function Chatbot({ name = "さくら", avatarUrl }: { name?: string; avatarUrl?: string }) {

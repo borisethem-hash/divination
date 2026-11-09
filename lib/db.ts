@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import type { DB } from "./types";
-import { createSeed } from "./seed";
+import { createSeed, defaultBanners } from "./seed";
 import { housekeeping } from "./logic";
 
 export { uid, nowIso } from "./util";
@@ -32,6 +32,11 @@ function writeDb(db: DB): void {
 export function readDb(): DB {
   ensure();
   const db = JSON.parse(fs.readFileSync(DB_FILE, "utf8")) as DB;
+  // 旧バージョンのデータファイルにはバナーがないため補完する
+  if (!Array.isArray(db.banners)) {
+    db.banners = defaultBanners();
+    writeDb(db);
+  }
   // 期限切れリクエストの失効・放置された通話の精算・スケジュール連動ステータスを定期的に反映
   const now = Date.now();
   if (now - lastHousekeeping > HOUSEKEEPING_INTERVAL_MS) {
