@@ -5,8 +5,8 @@ import { readDb } from "@/lib/db";
 
 export const metadata = { title: "占い師募集・アフィリエイト" };
 
-export default function RecruitPage() {
-  const { settings } = readDb();
+export default async function RecruitPage() {
+  const { settings } = await readDb();
   return (
     <>
       <PageHead title="占い師募集・アフィリエイト" en="Recruit" lead="対面鑑定の経験を、オンラインで活かしませんか。" image="/images/photos/fushimi.webp" />

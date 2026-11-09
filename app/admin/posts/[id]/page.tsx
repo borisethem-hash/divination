@@ -5,12 +5,13 @@ import { Flash } from "@/components/DashLayout";
 import { savePostAction, deletePostAction } from "@/app/actions/admin";
 import PostEditor from "@/components/PostEditor";
 import type { Post } from "@/lib/types";
+import ImageInput from "@/components/ImageInput";
 
 export default async function EditPost({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
   const { err } = await searchParams;
   const isNew = id === "new";
-  const db = readDb();
+  const db = await readDb();
   const p: Partial<Post> = isNew ? { type: "news", published: true, body: "" } : db.posts.find((x) => x.id === id) ?? notFound();
   const cats = [...new Set(db.posts.map((x) => x.category).filter(Boolean))] as string[];
   return (
@@ -31,7 +32,7 @@ export default async function EditPost({ params, searchParams }: { params: Promi
         <div className="field"><label>概要（一覧に表示）</label><input className="input" name="excerpt" defaultValue={p.excerpt} /></div>
         <div className="field">
           <label>カバー画像</label>
-          <input className="input" type="file" name="cover" accept="image/jpeg,image/png,image/webp,image/gif" />
+          <ImageInput name="cover" />
           {p.coverImage && <label className="check mt-1"><input type="checkbox" name="removeCover" />現在の画像を削除</label>}
         </div>
         <PostEditor defaultValue={p.body ?? ""} />

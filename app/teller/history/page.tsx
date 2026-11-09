@@ -7,7 +7,7 @@ export const metadata = { title: "鑑定履歴・売上" };
 
 export default async function TellerHistory() {
   const { teller } = await requireTeller();
-  const db = readDb();
+  const db = await readDb();
   const done = db.reservations.filter((r) => r.tellerId === teller.id && r.status === "completed").sort((a, b) => b.startAt.localeCompare(a.startAt));
   const month = jstDateStr().slice(0, 7);
   const rows = done.map((r) => ({ r, c: db.calls.find((x) => x.reservationId === r.id), u: db.users.find((x) => x.id === r.userId)! }));

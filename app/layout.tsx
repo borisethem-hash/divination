@@ -8,15 +8,15 @@ import { readDb } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { settings } = readDb();
+  const { settings } = await readDb();
   return {
     title: { default: `${settings.siteName}｜アプリ不要・通話料0円の電話占い`, template: `%s｜${settings.siteName}` },
     description: settings.heroText,
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { settings } = readDb();
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { settings } = await readDb();
   return (
     <html lang="ja">
       <head>

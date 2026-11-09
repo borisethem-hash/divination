@@ -7,7 +7,7 @@ export const metadata = { title: "お問い合わせ" };
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const { category } = await searchParams;
-  const { settings } = readDb();
+  const { settings } = await readDb();
   return (
     <>
       <PageHead title="お問い合わせ" en="Contact" lead="ご利用方法・お支払い・占い師へのご応募など、お気軽にご相談ください。" image="/images/photos/torii-sakura.webp" />

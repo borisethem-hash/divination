@@ -1,8 +1,8 @@
 import { readDb } from "@/lib/db";
 import { formatDateTime } from "@/lib/time";
 
-export default function AdminMails() {
-  const mails = [...readDb().mails].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 100);
+export default async function AdminMails() {
+  const mails = [...(await readDb()).mails].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 100);
   return (
     <>
       <h1>送信メール履歴</h1>

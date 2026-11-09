@@ -11,8 +11,8 @@ const PRINTS = [
   { src: "hiroshige-tama", title: "江戸近郊八景之内 玉川秋月", note: "柳の向こうに浮かぶ、静かな川辺の月。" },
 ];
 
-export default function AboutPage() {
-  const { tellers, settings } = readDb();
+export default async function AboutPage() {
+  const { tellers, settings } = await readDb();
   return (
     <>
       <PageHead title="月あかりについて" en="About us" lead="対面鑑定のぬくもりを、アプリ不要・通話料0円の電話占いで。" image="/images/photos/moonlight-water.webp" />

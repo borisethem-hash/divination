@@ -18,8 +18,8 @@ const TRUST = [
   { title: "占い館の実績", note: "対面鑑定で培った確かな力", icon: <><path d="M4 12c12-4 24-4 36 0M8 18h28M12 18v22M32 18v22M6 12l2 6M38 12l-2 6" /></> },
 ];
 
-export default function Home() {
-  const db = readDb();
+export default async function Home() {
+  const db = await readDb();
   const { settings } = db;
   const tellers = publishedTellers(db);
   const waiting = tellers.filter((t) => t.teller.status === "waiting");

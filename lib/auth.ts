@@ -10,7 +10,7 @@ const MAX_AGE = 60 * 60 * 24 * 14;
 export async function createSession(userId: string): Promise<void> {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + MAX_AGE * 1000).toISOString();
-  updateDb((db) => {
+  await updateDb((db) => {
     const now = new Date().toISOString();
     db.sessions = db.sessions.filter((s) => s.expiresAt > now);
     db.sessions.push({ token, userId, expiresAt });
@@ -22,7 +22,7 @@ export async function createSession(userId: string): Promise<void> {
 export async function destroySession(): Promise<void> {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
-  if (token) updateDb((db) => { db.sessions = db.sessions.filter((s) => s.token !== token); });
+  if (token) await updateDb((db) => { db.sessions = db.sessions.filter((s) => s.token !== token); });
   jar.delete(COOKIE);
 }
 
@@ -30,7 +30,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
   if (!token) return null;
-  const db = readDb();
+  const db = await readDb();
   const s = db.sessions.find((x) => x.token === token && x.expiresAt > new Date().toISOString());
   if (!s) return null;
   return db.users.find((u) => u.id === s.userId) ?? null;
@@ -45,7 +45,7 @@ export async function requireRole(role: Role, next = "/"): Promise<User> {
 
 export async function requireTeller(): Promise<{ user: User; teller: Teller }> {
   const user = await requireRole("teller", "/teller");
-  const teller = readDb().tellers.find((t) => t.userId === user.id);
+  const teller = (await readDb()).tellers.find((t) => t.userId === user.id);
   if (!teller) redirect("/");
   return { user, teller };
 }

@@ -14,7 +14,7 @@ export const metadata = { title: "占い師ページ" };
 export default async function TellerHome({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
   const { teller: t0 } = await requireTeller();
-  const db = readDb();
+  const db = await readDb();
   const teller = db.tellers.find((t) => t.id === t0.id)!;
   const mine = db.reservations.filter((r) => r.tellerId === teller.id);
   const requests = mine.filter((r) => r.status === "requested").sort((a, b) => a.createdAt.localeCompare(b.createdAt));

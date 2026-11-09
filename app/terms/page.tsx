@@ -3,8 +3,8 @@ import { readDb } from "@/lib/db";
 
 export const metadata = { title: "利用規約" };
 
-export default function TermsPage() {
-  const { settings } = readDb();
+export default async function TermsPage() {
+  const { settings } = await readDb();
   const items = [
     ["第1条（適用）", `本規約は、${settings.siteName}（以下「本サービス」）の利用に関する条件を定めるものです。会員は本規約に同意のうえ本サービスを利用するものとします。`],
     ["第2条（会員登録）", "登録希望者が所定の方法で申請し、当社が承認した時点で会員登録が完了します。虚偽の申告があった場合、当社は登録を取り消すことができます。"],

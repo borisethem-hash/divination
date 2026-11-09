@@ -4,7 +4,7 @@ import { payEarningsAction } from "@/app/actions/admin";
 
 export default async function AdminAffiliate({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
   const { ok } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const rows = db.tellers.map((t) => {
     const e = db.affiliateEarnings.filter((x) => x.tellerId === t.id);
     return {

@@ -13,7 +13,7 @@ export default async function ReviewPage({ params, searchParams }: { params: Pro
   const { tellerId } = await params;
   const { err } = await searchParams;
   const user = await requireRole("user", `/mypage/review/${tellerId}`);
-  const db = readDb();
+  const db = await readDb();
   const t = db.tellers.find((x) => x.id === tellerId);
   if (!t) notFound();
   const count = completedCount(db, user.id, tellerId);

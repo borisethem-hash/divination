@@ -2,8 +2,8 @@ import Link from "next/link";
 import { readDb } from "@/lib/db";
 import { MoonMark } from "./Art";
 
-export default function Footer() {
-  const { settings } = readDb();
+export default async function Footer() {
+  const { settings } = await readDb();
   return (
     <footer className="footer">
       <div className="container cols">

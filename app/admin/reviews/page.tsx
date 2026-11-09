@@ -8,7 +8,7 @@ const LABEL = { pending: "確認待ち", published: "掲載中", hidden: "非掲
 
 export default async function AdminReviews({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
   const { ok } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const order = { pending: 0, published: 1, hidden: 2 };
   const reviews = [...db.reviews].sort((a, b) => order[a.status] - order[b.status] || b.createdAt.localeCompare(a.createdAt));
 

@@ -8,7 +8,7 @@ export const metadata = { title: "無料会員登録" };
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ err?: string; next?: string }> }) {
   const { err, next } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const ref = (await cookies()).get("tsuki_ref")?.value;
   const refTeller = ref ? db.tellers.find((t) => t.affiliateCode === ref) : undefined;
   return (

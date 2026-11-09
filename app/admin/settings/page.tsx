@@ -2,10 +2,11 @@ import { readDb } from "@/lib/db";
 import { Flash } from "@/components/DashLayout";
 import { saveSettingsAction } from "@/app/actions/admin";
 import { GuideAvatar } from "@/components/Art";
+import ImageInput from "@/components/ImageInput";
 
 export default async function AdminSettings({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
-  const s = readDb().settings;
+  const s = (await readDb()).settings;
   return (
     <>
       <h1>サイト設定</h1>
@@ -27,7 +28,7 @@ export default async function AdminSettings({ searchParams }: { searchParams: Pr
             </div>
             <div className="grow form">
               <div className="field"><label>案内係の名前</label><input className="input" name="chatbotName" defaultValue={s.chatbotName} maxLength={20} /></div>
-              <div className="field"><label>案内係の画像（使用許諾を得た写真をアップロード）</label><input className="input" type="file" name="chatbotAvatar" accept="image/jpeg,image/png,image/webp,image/gif" /></div>
+              <div className="field"><label>案内係の画像（使用許諾を得た写真をアップロード）</label><ImageInput name="chatbotAvatar" /></div>
               {s.chatbotAvatar && <label className="check"><input type="checkbox" name="removeChatbotAvatar" />画像を削除してイラストに戻す</label>}
             </div>
           </div>

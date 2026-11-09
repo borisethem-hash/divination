@@ -3,13 +3,14 @@ import { readDb } from "@/lib/db";
 import { Flash } from "@/components/DashLayout";
 import { updateTellerProfileAction } from "@/app/actions/teller";
 import { TellerImage } from "@/components/Art";
+import ImageInput from "@/components/ImageInput";
 
 export const metadata = { title: "プロフィール編集" };
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
   const { teller: t0 } = await requireTeller();
-  const t = readDb().tellers.find((x) => x.id === t0.id)!;
+  const t = (await readDb()).tellers.find((x) => x.id === t0.id)!;
   return (
     <>
       <h1>プロフィール編集</h1>
@@ -18,8 +19,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <div className="flex" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}>
           <div style={{ width: 120, height: 144, border: "1px solid var(--line)", overflow: "hidden", flex: "none" }}><TellerImage teller={t} /></div>
           <div className="field grow">
-            <label>プロフィール画像（JPEG/PNG/WebP・5MBまで）</label>
-            <input className="input" type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" />
+            <label>プロフィール画像（JPEG/PNG/WebP・大きい写真は自動で縮小）</label>
+            <ImageInput name="image" />
             {t.imageUrl && <label className="check mt-1"><input type="checkbox" name="removeImage" />画像を削除してイラストに戻す</label>}
           </div>
         </div>

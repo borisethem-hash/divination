@@ -10,7 +10,7 @@ type SP = Record<string, string | undefined>;
 
 export default async function TellersPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const all = publishedTellers(db);
   let list = all;
   const methods = [...new Set(all.flatMap((t) => t.teller.methods))];

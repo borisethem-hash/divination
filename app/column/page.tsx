@@ -7,7 +7,7 @@ export const metadata = { title: "占いコラム" };
 
 export default async function ColumnList({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
   const { cat } = await searchParams;
-  const all = readDb().posts.filter((p) => p.published && p.type === "column").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const all = (await readDb()).posts.filter((p) => p.published && p.type === "column").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const cats = [...new Set(all.map((p) => p.category).filter(Boolean))] as string[];
   const posts = cat ? all.filter((p) => p.category === cat) : all;
   return (

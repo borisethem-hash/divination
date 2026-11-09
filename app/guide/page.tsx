@@ -9,8 +9,8 @@ export const metadata = { title: "ご利用ガイド・料金" };
 const PACKS = [3000, 5000, 10000, 20000, 30000];
 const bonusOf = (p: number) => (p >= 20000 ? Math.floor(p * 0.1) : p >= 10000 ? Math.floor(p * 0.05) : 0);
 
-export default function GuidePage() {
-  const { settings, tellers } = readDb();
+export default async function GuidePage() {
+  const { settings, tellers } = await readDb();
   const prices = [...new Set(tellers.filter((t) => t.published).map((t) => t.pricePerMin))].sort((a, b) => a - b);
   const min = prices[0] ?? 0, max = prices[prices.length - 1] ?? 0;
   // 料金シミュレーション用に最大5段階の価格帯を抜き出す

@@ -20,7 +20,7 @@ const SUB_LINKS = [
 
 export default async function Header() {
   const user = await getCurrentUser();
-  const { settings, tellers } = readDb();
+  const { settings, tellers } = await readDb();
   const waiting = tellers.filter((t) => t.published && t.status === "waiting").length;
   const roleLabel = user ? (user.role === "admin" ? "管理画面" : user.role === "teller" ? "占い師ページ" : "マイページ") : "";
   return (

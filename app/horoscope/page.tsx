@@ -10,10 +10,10 @@ import { formatJpDate, formatDate, jstDateStr } from "@/lib/time";
 
 export const metadata = { title: "今日の星座占い", description: "12星座の今日の運勢ランキング。恋愛運・仕事運・金運とラッキーカラーを毎日お届けします。" };
 
-export default function HoroscopePage() {
+export default async function HoroscopePage() {
   const list = dailyHoroscope();
   const moon = moonPhase();
-  const astro = publishedTellers(readDb()).filter((t) => t.teller.methods.some((m) => m.includes("占星術"))).slice(0, 4);
+  const astro = publishedTellers((await readDb())).filter((t) => t.teller.methods.some((m) => m.includes("占星術"))).slice(0, 4);
   return (
     <>
       <PageHead title="今日の星座占い" en="Daily horoscope" lead={`${formatJpDate(new Date().toISOString())}の12星座ランキング。毎日0時に更新されます。`} image="/images/photos/milkyway-trees.webp" />

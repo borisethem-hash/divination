@@ -5,7 +5,7 @@ import { formatDateTime } from "@/lib/time";
 
 export default async function AdminPosts({ searchParams }: { searchParams: Promise<{ ok?: string }> }) {
   const { ok } = await searchParams;
-  const posts = [...readDb().posts].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const posts = [...(await readDb()).posts].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return (
     <>
       <div className="flex between"><h1 className="mb-0">記事管理（お知らせ・イベント・コラム）</h1><Link href="/admin/posts/new" className="btn">＋ 新規作成</Link></div>

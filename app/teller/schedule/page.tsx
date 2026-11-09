@@ -12,7 +12,7 @@ const WD = ["日", "月", "火", "水", "木", "金", "土"];
 export default async function SchedulePage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
   const { teller } = await requireTeller();
-  const db = readDb();
+  const db = await readDb();
   const today = jstDateStr();
   const list = schedulesFor(db, teller.id, today, 31);
   const byDate = new Map<string, typeof list>();

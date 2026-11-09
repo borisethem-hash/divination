@@ -15,7 +15,7 @@ export async function setStatusAction(fd: FormData) {
   const { teller } = await requireTeller();
   const status = String(fd.get("status")) as TellerStatus;
   if (!["waiting", "away", "offline"].includes(status)) return;
-  updateDb((db) => {
+  await updateDb((db) => {
     const t = db.tellers.find((x) => x.id === teller.id)!;
     const inCall = db.reservations.some((r) => r.tellerId === t.id && r.status === "in_progress");
     if (inCall) { t.statusBeforeBusy = status; return; } // 鑑定中は終了後に反映
@@ -31,7 +31,7 @@ async function decide(fd: FormData, decision: "approve" | "reject") {
   const { teller } = await requireTeller();
   const id = String(fd.get("id"));
   const note = String(fd.get("note") ?? "").slice(0, 300);
-  const err = updateDb((db) => {
+  const err = await updateDb((db) => {
     const r = db.reservations.find((x) => x.id === id && x.tellerId === teller.id);
     if (!r || r.status !== "requested") return "このリクエストは既に処理されています";
     const t = db.tellers.find((x) => x.id === teller.id)!;
@@ -69,7 +69,7 @@ export async function addScheduleAction(fd: FormData) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || to < from) back("期間を正しく入力してください");
   if (!TIME.test(start) || !TIME.test(end) || start >= end) back("開始・終了時刻を正しく入力してください（終了は開始より後）");
   let added = 0;
-  updateDb((db) => {
+  await updateDb((db) => {
     for (let d = from, i = 0; d <= to && i < 92; d = addDays(d, 1), i++) {
       const wd = new Date(d + "T00:00:00Z").getUTCDay();
       if (weekdays.length && !weekdays.includes(wd)) continue;
@@ -85,7 +85,7 @@ export async function addScheduleAction(fd: FormData) {
 export async function deleteScheduleAction(fd: FormData) {
   const { teller } = await requireTeller();
   const id = String(fd.get("id"));
-  updateDb((db) => { db.schedules = db.schedules.filter((s) => !(s.id === id && s.tellerId === teller.id)); });
+  await updateDb((db) => { db.schedules = db.schedules.filter((s) => !(s.id === id && s.tellerId === teller.id)); });
   revalidatePath("/teller/schedule");
 }
 
@@ -94,7 +94,7 @@ export async function updateTellerProfileAction(fd: FormData) {
   let imageUrl: string | undefined;
   try { imageUrl = await saveImage(fd.get("image")); } catch (e) { redirect(`/teller/profile?err=${enc((e as Error).message)}`); }
   const list = (k: string) => String(fd.get(k) ?? "").split(/[,、\s]+/).map((s) => s.trim()).filter(Boolean).slice(0, 8);
-  updateDb((db) => {
+  await updateDb((db) => {
     const t = db.tellers.find((x) => x.id === teller.id)!;
     t.catchcopy = String(fd.get("catchcopy") ?? "").slice(0, 80);
     t.bio = String(fd.get("bio") ?? "").slice(0, 2000);

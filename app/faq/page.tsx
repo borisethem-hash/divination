@@ -4,8 +4,8 @@ import { readDb } from "@/lib/db";
 
 export const metadata = { title: "よくある質問" };
 
-export default function FaqPage() {
-  const { settings } = readDb();
+export default async function FaqPage() {
+  const { settings } = await readDb();
   const groups: { title: string; items: [string, string][] }[] = [
     {
       title: "はじめての方",

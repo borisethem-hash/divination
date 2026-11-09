@@ -11,7 +11,7 @@ const PRESENCE_MS = 8000; // この時間ハートビートが無ければ不在
 async function ctx(id: string) {
   const user = await getCurrentUser();
   if (!user) return { error: "ログインが必要です", status: 401 as const };
-  const db = readDb();
+  const db = await readDb();
   const r = db.reservations.find((x) => x.id === id);
   if (!r) return { error: "予約が見つかりません", status: 404 as const };
   const teller = db.tellers.find((t) => t.id === r.tellerId)!;
@@ -57,20 +57,38 @@ function view(db: DB, call: Call | undefined, role: "user" | "teller") {
   };
 }
 
+/** ハートビートの保存間隔。ポーリングのたびに保存せず、データストアへの書き込みを抑える */
+const PRESENCE_WRITE_MS = 3000;
+
+/** 保存が必要な変化（ハートビートの更新・時間切れ・回線切断）があるか */
+function needsWrite(db: DB, call: Call, role: "user" | "teller", now: number): boolean {
+  if (call.endedAt) return false;
+  const mine = role === "user" ? call.userSeen : call.tellerSeen;
+  if (!mine || now - mine > PRESENCE_WRITE_MS) return true;
+  if (call.startedAt) {
+    const r = db.reservations.find((x) => x.id === call.reservationId)!;
+    if (now > new Date(call.startedAt).getTime() + (callLimitSec(db, r) + 3) * 1000) return true;
+    const other = role === "user" ? call.tellerSeen : call.userSeen;
+    if (other && now - other > CALL_DROP_MS) return true;
+  }
+  return false;
+}
+
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const c = await ctx(id);
   if ("error" in c) return NextResponse.json({ error: c.error }, { status: c.status });
-  const out = updateDb((db) => {
-    const call = db.calls.find((x) => x.reservationId === id);
-    if (!call) {
-      const r = db.reservations.find((x) => x.id === id)!;
-      if (r.status === "completed") {
-        return { ...view(db, undefined, c.role), endedAt: r.decidedAt ?? r.startAt };
-      }
-      return view(db, undefined, c.role);
-    }
-    return tick(db, call, c.role);
+  const db = await readDb();
+  const call = db.calls.find((x) => x.reservationId === id);
+  if (!call) {
+    const r = db.reservations.find((x) => x.id === id)!;
+    if (r.status === "completed") return NextResponse.json({ ...view(db, undefined, c.role), endedAt: r.decidedAt ?? r.startAt });
+    return NextResponse.json(view(db, undefined, c.role));
+  }
+  if (!needsWrite(db, call, c.role, Date.now())) return NextResponse.json(view(db, call, c.role));
+  const out = await updateDb((d) => {
+    const cl = d.calls.find((x) => x.reservationId === id);
+    return cl ? tick(d, cl, c.role) : view(d, undefined, c.role);
   });
   return NextResponse.json(out);
 }
@@ -80,7 +98,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const c = await ctx(id);
   if ("error" in c) return NextResponse.json({ error: c.error }, { status: c.status });
   const body = (await req.json().catch(() => ({}))) as { action?: string; sdp?: string; epoch?: number };
-  const result = updateDb((db): { error: string; status: number } | ReturnType<typeof view> => {
+  const result = await updateDb((db): { error: string; status: number } | ReturnType<typeof view> => {
     const r = db.reservations.find((x) => x.id === id)!;
     let call = db.calls.find((x) => x.reservationId === id);
 

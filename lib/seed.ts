@@ -135,19 +135,25 @@ function nextMonthDay(today: string, month: number, day: number): string {
 }
 
 export function createSeed(): DB {
+  // デモ用パスワードは種類が少ないため、ハッシュを使い回して初回生成を高速化する
+  const hashes = new Map<string, string>();
+  const pw = (plain: string) => {
+    if (!hashes.has(plain)) hashes.set(plain, hashPassword(plain));
+    return hashes.get(plain)!;
+  };
   const now = new Date();
   const today = jstDateStr(now);
   const iso = (d: Date) => d.toISOString();
   const ago = (days: number, h = 0) => iso(new Date(now.getTime() - days * 86400000 - h * 3600000));
 
-  const admin = { id: "u_admin", role: "admin" as const, email: "admin@example.com", name: "運営管理者", passwordHash: hashPassword("admin1234"), points: 0, createdAt: ago(200) };
+  const admin = { id: "u_admin", role: "admin" as const, email: "admin@example.com", name: "運営管理者", passwordHash: pw("admin1234"), points: 0, createdAt: ago(200) };
 
   const tellerUsers = TELLERS.map((t, i) => ({
     id: `u_teller${i + 1}`,
     role: "teller" as const,
     email: i === 0 ? "teller@example.com" : `teller${i + 1}@example.com`,
     name: t.name,
-    passwordHash: hashPassword("teller1234"),
+    passwordHash: pw("teller1234"),
     points: 0,
     createdAt: ago(t.daysAgo),
   }));
@@ -163,10 +169,10 @@ export function createSeed(): DB {
   }));
 
   const users = [
-    { id: "u_user", role: "user" as const, email: "user@example.com", name: "山田 花子", passwordHash: hashPassword("user1234"), points: 8000, createdAt: ago(60) },
-    { id: "u_user2", role: "user" as const, email: "sato@example.com", name: "佐藤 美咲", passwordHash: hashPassword("user1234"), points: 3000, createdAt: ago(50), referredBy: "t1" },
-    { id: "u_user3", role: "user" as const, email: "suzuki@example.com", name: "鈴木 彩", passwordHash: hashPassword("user1234"), points: 1500, createdAt: ago(40), referredBy: "t1" },
-    { id: "u_user4", role: "user" as const, email: "takahashi@example.com", name: "高橋 恵", passwordHash: hashPassword("user1234"), points: 500, createdAt: ago(30) },
+    { id: "u_user", role: "user" as const, email: "user@example.com", name: "山田 花子", passwordHash: pw("user1234"), points: 8000, createdAt: ago(60) },
+    { id: "u_user2", role: "user" as const, email: "sato@example.com", name: "佐藤 美咲", passwordHash: pw("user1234"), points: 3000, createdAt: ago(50), referredBy: "t1" },
+    { id: "u_user3", role: "user" as const, email: "suzuki@example.com", name: "鈴木 彩", passwordHash: pw("user1234"), points: 1500, createdAt: ago(40), referredBy: "t1" },
+    { id: "u_user4", role: "user" as const, email: "takahashi@example.com", name: "高橋 恵", passwordHash: pw("user1234"), points: 500, createdAt: ago(30) },
   ];
 
   // スケジュール：今日から14日分（各占い師 週1日お休み）

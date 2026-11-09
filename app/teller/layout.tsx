@@ -4,7 +4,7 @@ import { readDb } from "@/lib/db";
 
 export default async function TellerLayout({ children }: { children: React.ReactNode }) {
   const { teller } = await requireTeller();
-  const pending = readDb().reservations.filter((r) => r.tellerId === teller.id && r.status === "requested").length;
+  const pending = (await readDb()).reservations.filter((r) => r.tellerId === teller.id && r.status === "requested").length;
   return (
     <DashLayout title="占い師ページ" who={`${teller.name} 先生`} links={[
       { href: "/teller", label: "ステータス・リクエスト", badge: pending },

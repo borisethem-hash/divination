@@ -11,7 +11,7 @@ const PLANS = [3000, 5000, 10000, 20000, 30000];
 export default async function PointsPage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
   const user = await requireRole("user", "/mypage/points");
-  const tx = readDb().transactions.filter((t) => t.userId === user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const tx = (await readDb()).transactions.filter((t) => t.userId === user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return (
     <>
       <h1>ポイント購入・明細</h1>

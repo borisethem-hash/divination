@@ -13,7 +13,7 @@ export const metadata = { title: "マイページ" };
 export default async function MyPage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
   const user = await requireRole("user", "/mypage");
-  const db = readDb();
+  const db = await readDb();
   const active = db.reservations.filter((r) => r.userId === user.id && ["requested", "approved", "in_progress"].includes(r.status)).sort((a, b) => a.startAt.localeCompare(b.startAt));
   const notes = db.notifications.filter((n) => n.userId === user.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 8);
   const reviewAsk = pendingReviewTellers(db, user.id);

@@ -19,7 +19,28 @@ npm run build && npm start      # or: npm run dev
 # open http://localhost:3000
 ```
 
-The database (`data/db.json`) is created with demo data on the first request. To start over, run `npm run reset-db`; this also deletes uploaded images.
+Locally, data is stored in `data/db.json`, which is created with demo data on the first request. To start over, run `npm run reset-db`. This also deletes uploaded images, and clears Redis too if Redis variables are set in `.env.local`.
+
+## Deploying to Vercel
+
+Vercel's servers have a **read-only filesystem**, so the local `data/db.json` file cannot be used there. The app picks its storage automatically (`lib/storage.ts`):
+
+| Environment | Storage | Data kept? |
+|---|---|---|
+| Vercel **with** Upstash Redis connected | Upstash Redis (REST API) | Yes. Shared by all server instances |
+| Vercel **without** Redis | The server's temporary folder (`/tmp`) | No. The site works, but data returns to the demo state when the server restarts. The admin panel shows a warning |
+| Local (`npm run dev` / `npm start`) | `data/db.json` | Yes |
+
+**Setup (once, free plan is enough):**
+1. In the Vercel dashboard, open the project → **Storage** → **Create Database** → **Upstash for Redis** (Marketplace) → Free plan. Choose the region nearest your functions; for Japanese users, Tokyo (`ap-northeast-1`) with the function region set to `hnd1`.
+2. **Connect** it to this project for all environments. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. If you created the database on upstash.com instead, add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` yourself.
+3. **Redeploy** (Deployments → ⋯ → Redeploy), or push a new commit.
+4. Open `https://<your-domain>/api/health`. It should show `"storage":"redis"` and `"persistent":true`. Demo data is created on the first request.
+
+**Notes:**
+- **Concurrent writes:** in Redis mode, the whole dataset is stored as one versioned document. Concurrent writes use compare-and-set and are retried, so no update is lost. Each server instance caches the document and only downloads it again when the version changes. This suits a demo or a small site; move to PostgreSQL as traffic grows (all access goes through `readDb`/`updateDb`).
+- **Uploads:** images are stored in Redis and served from `/api/uploads/…` with long-term CDN caching. The browser shrinks large photos to at most 1600px before upload, because Vercel rejects request bodies over 4.5MB.
+- **Resetting a deployment:** run `npm run reset-db` locally with the same Redis variables in `.env.local`, or delete the `tsukiakari:*` keys in the Upstash console.
 
 ### Demo accounts
 
@@ -97,11 +118,11 @@ Before buying a photo of a person, check the stock site's **"sensitive use" rule
 
 | Area | Demo behavior | Production |
 |---|---|---|
-| Database | JSON file (`data/db.json`) | PostgreSQL or MySQL (all access goes through `readDb`/`updateDb` in `lib/db.ts`) |
+| Database | Local: JSON file. Vercel: Upstash Redis (see "Deploying to Vercel") | Upstash Redis is fine for launch-scale traffic. Move to PostgreSQL or MySQL as data grows (all access goes through `readDb`/`updateDb` in `lib/db.ts`) |
 | Call reliability | Public STUN only | **A TURN server is required** for users behind strict NATs or mobile carriers. Set `NEXT_PUBLIC_TURN_*` (coturn, Twilio NTS, Cloudflare TURN), or use a managed SDK such as SkyWay, Agora or Twilio |
 | Payments | Points are added instantly | Stripe, PAY.JP or GMO-PG |
 | Email | Logged at `/admin/mails` | SendGrid or Amazon SES |
-| Uploads | `data/uploads` on local disk | S3 or Cloud Storage |
+| Uploads | Local disk, or Redis on Vercel | Vercel Blob, S3 or Cloud Storage for large volumes |
 | HTTPS | — | Required, because browsers only allow the microphone on HTTPS |
 | Legal pages | Templates | Terms, privacy policy and 特商法 page reviewed by counsel. The 180-day point expiry in the terms is not enforced automatically |
 | Template content | Demo tellers, reviews, columns, banners and the About page | Replace with the client's real tellers and photos. Confirm the About/Recruit process descriptions (screening, interviews) match actual practice |

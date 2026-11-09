@@ -8,7 +8,7 @@ import type { ReservationStatus } from "@/lib/types";
 
 export default async function AdminReservations({ searchParams }: { searchParams: Promise<{ ok?: string; status?: string }> }) {
   const { ok, status } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const list = db.reservations.filter((r) => !status || r.status === status).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const statuses = Object.keys(RES_STATUS_LABEL) as ReservationStatus[];
   return (

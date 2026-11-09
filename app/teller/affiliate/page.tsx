@@ -8,7 +8,7 @@ export const metadata = { title: "アフィリエイト" };
 
 export default async function AffiliatePage() {
   const { teller } = await requireTeller();
-  const db = readDb();
+  const db = await readDb();
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
   const link = `${origin}/r/${teller.affiliateCode}`;

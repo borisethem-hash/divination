@@ -28,7 +28,7 @@ export async function saveTellerAction(fd: FormData) {
   let imageUrl: string | undefined;
   try { imageUrl = await saveImage(fd.get("image")); } catch (e) { back((e as Error).message); }
 
-  const err = updateDb((db) => {
+  const err = await updateDb((db) => {
     if (db.tellers.some((t) => t.affiliateCode === code && t.id !== id)) return "このアフィリエイトコードは既に使われています";
     const fields = {
       name, kana: String(fd.get("kana") ?? ""), catchcopy: String(fd.get("catchcopy") ?? ""),
@@ -70,7 +70,7 @@ export async function saveTellerAction(fd: FormData) {
 export async function deleteTellerAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
-  updateDb((db) => {
+  await updateDb((db) => {
     const t = db.tellers.find((x) => x.id === id);
     if (!t) return;
     // 履歴保全のため削除ではなく非公開化＋ログイン停止
@@ -85,7 +85,7 @@ export async function adminSetTellerStatusAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
   const status = String(fd.get("status")) as TellerStatus;
-  updateDb((db) => { const t = db.tellers.find((x) => x.id === id); if (t && ["waiting", "away", "offline"].includes(status)) t.status = status; });
+  await updateDb((db) => { const t = db.tellers.find((x) => x.id === id); if (t && ["waiting", "away", "offline"].includes(status)) t.status = status; });
   revalidatePath("/admin/tellers");
 }
 
@@ -96,7 +96,7 @@ export async function adjustPointsAction(fd: FormData) {
   const amount = Math.trunc(Number(fd.get("amount")));
   const note = String(fd.get("note") ?? "").trim() || "運営による調整";
   if (!amount) redirect(`/admin/users?err=${enc("ポイント数を入力してください")}`);
-  updateDb((db) => {
+  await updateDb((db) => {
     const u = db.users.find((x) => x.id === id);
     if (!u) return;
     u.points = Math.max(0, u.points + amount);
@@ -110,7 +110,7 @@ export async function adjustPointsAction(fd: FormData) {
 export async function adminCancelReservationAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
-  updateDb((db) => {
+  await updateDb((db) => {
     const r = db.reservations.find((x) => x.id === id);
     if (!r) return;
     if (r.status === "in_progress") {
@@ -137,7 +137,7 @@ export async function savePostAction(fd: FormData) {
   const slug = rawSlug ? slugify(rawSlug) : "post-" + Date.now().toString(36);
   let cover: string | undefined;
   try { cover = await saveImage(fd.get("cover")); } catch (e) { back((e as Error).message); }
-  const err = updateDb((db) => {
+  const err = await updateDb((db) => {
     if (db.posts.some((p) => p.slug === slug && p.id !== id)) return "このURL（スラッグ）は既に使われています";
     const fields: Partial<Post> = {
       type: fd.get("type") === "event" ? "event" : fd.get("type") === "column" ? "column" : "news", title, slug,
@@ -165,7 +165,7 @@ export async function savePostAction(fd: FormData) {
 export async function deletePostAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
-  updateDb((db) => { db.posts = db.posts.filter((p) => p.id !== id); });
+  await updateDb((db) => { db.posts = db.posts.filter((p) => p.id !== id); });
   redirect(`/admin/posts?ok=${enc("削除しました")}`);
 }
 
@@ -174,7 +174,7 @@ export async function setReviewStatusAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
   const status = String(fd.get("status")) as Review["status"] | "delete";
-  updateDb((db) => {
+  await updateDb((db) => {
     if (status === "delete") { db.reviews = db.reviews.filter((r) => r.id !== id); return; }
     const r = db.reviews.find((x) => x.id === id);
     if (r && ["pending", "published", "hidden"].includes(status)) r.status = status;
@@ -187,7 +187,7 @@ export async function setInquiryStatusAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
   const status = String(fd.get("status")) as Inquiry["status"];
-  updateDb((db) => { const q = db.inquiries.find((x) => x.id === id); if (q && ["new", "in_progress", "done"].includes(status)) q.status = status; });
+  await updateDb((db) => { const q = db.inquiries.find((x) => x.id === id); if (q && ["new", "in_progress", "done"].includes(status)) q.status = status; });
   revalidatePath("/admin/inquiries");
 }
 
@@ -195,7 +195,7 @@ export async function setInquiryStatusAction(fd: FormData) {
 export async function payEarningsAction(fd: FormData) {
   await admin();
   const tellerId = String(fd.get("tellerId"));
-  const total = updateDb((db) => {
+  const total = await updateDb((db) => {
     let sum = 0;
     db.affiliateEarnings.filter((e) => e.tellerId === tellerId && !e.paid).forEach((e) => { e.paid = true; sum += e.amount; });
     const t = db.tellers.find((x) => x.id === tellerId);
@@ -211,7 +211,7 @@ export async function saveSettingsAction(fd: FormData) {
   let avatar: string | undefined;
   try { avatar = await saveImage(fd.get("chatbotAvatar")); } catch (e) { redirect(`/admin/settings?err=${enc((e as Error).message)}`); }
   const num = (k: string, min: number, max: number, def: number) => { const n = Number(fd.get(k)); return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.trunc(n))) : def; };
-  updateDb((db) => {
+  await updateDb((db) => {
     const s = db.settings;
     s.siteName = String(fd.get("siteName") ?? s.siteName).trim() || s.siteName;
     s.heroTitle = String(fd.get("heroTitle") ?? s.heroTitle);
@@ -236,7 +236,7 @@ export async function sendReviewRequestAction(fd: FormData) {
   await admin();
   const userId = String(fd.get("userId"));
   const tellerId = String(fd.get("tellerId"));
-  updateDb((db) => {
+  await updateDb((db) => {
     const t = db.tellers.find((x) => x.id === tellerId);
     if (t) notify(db, userId, `${t.name} 先生への口コミのお願い`, `いつもご利用ありがとうございます。${t.name} 先生の鑑定はいかがでしたか？ぜひ口コミをお寄せください。`, `/mypage/review/${tellerId}`);
   });
@@ -255,7 +255,7 @@ export async function saveBannerAction(fd: FormData) {
   if (link && !/^(https?:\/\/|\/(?![\/\\]))/.test(link)) back("リンク先は「/」から始まるサイト内のパス、または http(s):// から始まるURLを入力してください");
   let image: string | undefined;
   try { image = await saveImage(fd.get("image")); } catch (e) { back((e as Error).message); }
-  const err = updateDb((db) => {
+  const err = await updateDb((db) => {
     const fields: Partial<SiteBanner> = {
       label: String(fd.get("label") ?? "").trim().slice(0, 20),
       title,
@@ -283,7 +283,7 @@ export async function saveBannerAction(fd: FormData) {
 export async function deleteBannerAction(fd: FormData) {
   await admin();
   const id = String(fd.get("id"));
-  updateDb((db) => { db.banners = db.banners.filter((b) => b.id !== id); });
+  await updateDb((db) => { db.banners = db.banners.filter((b) => b.id !== id); });
   revalidatePath("/");
   redirect(`/admin/banners?ok=${enc("バナーを削除しました")}`);
 }

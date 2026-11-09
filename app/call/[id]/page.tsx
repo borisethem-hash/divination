@@ -11,7 +11,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/call/${id}`);
-  const db = readDb();
+  const db = await readDb();
   const r = db.reservations.find((x) => x.id === id);
   if (!r) notFound();
   const teller = db.tellers.find((t) => t.id === r.tellerId)!;

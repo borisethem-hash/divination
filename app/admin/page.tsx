@@ -6,8 +6,8 @@ import { adminSetTellerStatusAction } from "@/app/actions/admin";
 import AutoRefresh from "@/components/AutoRefresh";
 import ActionButton from "@/components/ActionButton";
 
-export default function AdminHome() {
-  const db = readDb();
+export default async function AdminHome() {
+  const db = await readDb();
   const today = jstDateStr();
   const month = today.slice(0, 7);
   const calls = db.calls.filter((c) => c.endedAt);

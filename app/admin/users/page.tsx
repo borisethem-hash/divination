@@ -5,7 +5,7 @@ import { formatDateTime } from "@/lib/time";
 
 export default async function AdminUsers({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string; q?: string }> }) {
   const { ok, err, q } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const users = db.users.filter((u) => u.role === "user" && (!q || u.name.includes(q) || u.email.includes(q))).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return (
     <>

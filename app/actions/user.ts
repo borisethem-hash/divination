@@ -20,7 +20,7 @@ export async function requestReservationAction(fd: FormData) {
   const message = String(fd.get("message") ?? "").slice(0, 1000);
   const back = (m: string) => redirect(`/tellers/${tellerId}?err=${enc(m)}#request`);
 
-  const db = readDb();
+  const db = await readDb();
   const teller = db.tellers.find((t) => t.id === tellerId && t.published);
   if (!teller) back("占い師が見つかりません");
   if (type === "fixed" && !FIXED_DURATIONS.includes(durationMin!)) back("鑑定時間を選択してください");
@@ -44,7 +44,7 @@ export async function requestReservationAction(fd: FormData) {
   const dup = db.reservations.some((r) => r.userId === user.id && r.tellerId === tellerId && ["requested", "approved"].includes(r.status) && (instant ? r.instant : r.startAt === startAt!.toISOString()));
   if (dup) back("同じ内容のリクエストが既に送信されています。マイページをご確認ください");
 
-  updateDb((d) => {
+  await updateDb((d) => {
     const r: Reservation = { id: uid("r_"), userId: user.id, tellerId, type, durationMin, startAt: startAt!.toISOString(), instant, message, status: "requested", createdAt: nowIso() };
     d.reservations.push(r);
     const when = instant ? "今すぐ" : formatDateTime(r.startAt);
@@ -57,7 +57,7 @@ export async function requestReservationAction(fd: FormData) {
 export async function cancelReservationAction(fd: FormData) {
   const user = await requireRole("user", "/mypage");
   const id = String(fd.get("id"));
-  updateDb((db) => {
+  await updateDb((db) => {
     const r = db.reservations.find((x) => x.id === id && x.userId === user.id);
     if (!r || !["requested", "approved"].includes(r.status)) return;
     r.status = "cancelled";
@@ -72,7 +72,7 @@ export async function chargePointsAction(fd: FormData) {
   const amount = Number(fd.get("amount"));
   if (![3000, 5000, 10000, 20000, 30000].includes(amount)) redirect(`/mypage/points?err=${enc("購入金額を選択してください")}`);
   const bonus = amount >= 20000 ? Math.floor(amount * 0.1) : amount >= 10000 ? Math.floor(amount * 0.05) : 0;
-  updateDb((db) => {
+  await updateDb((db) => {
     const u = db.users.find((x) => x.id === user.id)!;
     u.points += amount + bonus;
     db.transactions.push({ id: uid("x_"), userId: u.id, type: "charge", amount, note: `ポイント購入（${fd.get("method") === "bank" ? "銀行振込" : "クレジットカード"}）`, createdAt: nowIso() });
@@ -87,12 +87,12 @@ export async function postReviewAction(fd: FormData) {
   const rating = Math.min(5, Math.max(1, Number(fd.get("rating")) || 0));
   const body = String(fd.get("body") ?? "").trim();
   const back = (m: string) => redirect(`/mypage/review/${tellerId}?err=${enc(m)}`);
-  const db = readDb();
+  const db = await readDb();
   if (completedCount(db, user.id, tellerId) < 1) back("鑑定を受けた占い師のみ口コミを投稿できます");
   if (body.length < 10 || body.length > 800) back("口コミは10〜800文字で入力してください");
   if (!fd.get("rating")) back("評価を選択してください");
   if (db.reviews.some((r) => r.userId === user.id && r.tellerId === tellerId)) back("この占い師への口コミは投稿済みです");
-  updateDb((d) => {
+  await updateDb((d) => {
     d.reviews.push({ id: uid("v_"), userId: user.id, tellerId, rating, body, status: d.settings.reviewAutoPublish ? "published" : "pending", createdAt: nowIso() });
     d.notifications.filter((n) => n.userId === user.id && n.link === `/mypage/review/${tellerId}`).forEach((n) => (n.read = true));
   });
@@ -101,6 +101,6 @@ export async function postReviewAction(fd: FormData) {
 
 export async function readNotificationsAction() {
   const user = await requireRole("user", "/mypage");
-  updateDb((db) => db.notifications.filter((n) => n.userId === user.id).forEach((n) => (n.read = true)));
+  await updateDb((db) => db.notifications.filter((n) => n.userId === user.id).forEach((n) => (n.read = true)));
   revalidatePath("/mypage");
 }

@@ -7,7 +7,7 @@ export const metadata = { title: "鑑定履歴" };
 
 export default async function HistoryPage() {
   const user = await requireRole("user", "/mypage/history");
-  const db = readDb();
+  const db = await readDb();
   const done = db.reservations.filter((r) => r.userId === user.id && r.status === "completed").sort((a, b) => b.startAt.localeCompare(a.startAt));
   const counts = new Map<string, number>();
   done.forEach((r) => counts.set(r.tellerId, (counts.get(r.tellerId) ?? 0) + 1));

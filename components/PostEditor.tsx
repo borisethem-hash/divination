@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { shrinkImage } from "@/lib/shrink-image";
 
 /** WordPress感覚で使える簡易エディタ：ツールバー＋本文中への画像アップロード */
 export default function PostEditor({ defaultValue }: { defaultValue: string }) {
@@ -18,7 +19,7 @@ export default function PostEditor({ defaultValue }: { defaultValue: string }) {
 
   const upload = async (file: File) => {
     setUploading(true);
-    const fd = new FormData(); fd.append("file", file);
+    const fd = new FormData(); fd.append("file", await shrinkImage(file));
     const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
     const j = await res.json().catch(() => ({}));
     setUploading(false);

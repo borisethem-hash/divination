@@ -7,7 +7,7 @@ export const metadata = { title: "お知らせ・イベント" };
 
 export default async function NewsPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const { type } = await searchParams;
-  const posts = readDb().posts
+  const posts = (await readDb()).posts
     .filter((p) => p.published && p.type !== "column" && (!type || p.type === type))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return (

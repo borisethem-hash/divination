@@ -4,7 +4,7 @@ import { readDb } from "@/lib/db";
 
 export default async function MyLayout({ children }: { children: React.ReactNode }) {
   const user = await requireRole("user", "/mypage");
-  const unread = readDb().notifications.filter((n) => n.userId === user.id && !n.read).length;
+  const unread = (await readDb()).notifications.filter((n) => n.userId === user.id && !n.read).length;
   return (
     <DashLayout title="マイページ" who={`${user.name} 様`} links={[
       { href: "/mypage", label: "ホーム・予約状況", badge: unread },

@@ -5,9 +5,9 @@ import ActionButton from "@/components/ActionButton";
 
 const LABEL = { new: "未対応", in_progress: "対応中", done: "完了" } as const;
 
-export default function AdminInquiries() {
+export default async function AdminInquiries() {
   const order = { new: 0, in_progress: 1, done: 2 };
-  const list = [...readDb().inquiries].sort((a, b) => order[a.status] - order[b.status] || b.createdAt.localeCompare(a.createdAt));
+  const list = [...(await readDb()).inquiries].sort((a, b) => order[a.status] - order[b.status] || b.createdAt.localeCompare(a.createdAt));
   return (
     <>
       <h1>お問い合わせ</h1>

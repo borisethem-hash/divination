@@ -6,7 +6,7 @@ import { STATUS_LABEL, tellerStats } from "@/lib/logic";
 
 export default async function AdminTellers({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { ok, err } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const tellers = [...db.tellers].sort((a, b) => a.sortOrder - b.sortOrder);
   return (
     <>

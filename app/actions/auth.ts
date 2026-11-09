@@ -16,7 +16,7 @@ export async function loginAction(fd: FormData) {
   const email = String(fd.get("email") ?? "").trim().toLowerCase();
   const password = String(fd.get("password") ?? "");
   const next = safeNext(String(fd.get("next") ?? ""));
-  const user = readDb().users.find((u) => u.email === email);
+  const user = (await readDb()).users.find((u) => u.email === email);
   if (!user || !verifyPassword(password, user.passwordHash)) {
     redirect(`/login?err=${enc("メールアドレスまたはパスワードが正しくありません")}${next ? `&next=${enc(next)}` : ""}`);
   }
@@ -39,7 +39,7 @@ export async function registerAction(fd: FormData) {
   const jar = await cookies();
   const refCode = jar.get("tsuki_ref")?.value;
 
-  const userId = updateDb((db) => {
+  const userId = await updateDb((db) => {
     if (db.users.some((u) => u.email === email)) return null;
     const refTeller = refCode ? db.tellers.find((t) => t.affiliateCode === refCode) : undefined;
     const id = uid("u_");

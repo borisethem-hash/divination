@@ -12,14 +12,14 @@ import { Flash } from "@/components/DashLayout";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const t = readDb().tellers.find((x) => x.id === id);
+  const t = (await readDb()).tellers.find((x) => x.id === id);
   return { title: t ? `${t.name}（${t.methods.join("・")}）` : "占い師" };
 }
 
 export default async function TellerDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
   const { err } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const teller = db.tellers.find((t) => t.id === id && t.published);
   if (!teller) notFound();
   const user = await getCurrentUser();

@@ -5,11 +5,12 @@ import { Flash } from "@/components/DashLayout";
 import { Portrait, TellerImage, PORTRAITS } from "@/components/Art";
 import { saveTellerAction, deleteTellerAction } from "@/app/actions/admin";
 import type { Teller } from "@/lib/types";
+import ImageInput from "@/components/ImageInput";
 
 export default async function EditTeller({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
   const { err } = await searchParams;
-  const db = readDb();
+  const db = await readDb();
   const isNew = id === "new";
   const t: Partial<Teller> = isNew ? { published: true, pricePerMin: 150, portrait: db.tellers.length % PORTRAITS.length, sortOrder: db.tellers.length, methods: [], specialties: [], styles: [] } : db.tellers.find((x) => x.id === id) ?? notFound();
   const u = !isNew ? db.users.find((x) => x.id === t.userId) : undefined;
@@ -42,7 +43,7 @@ export default async function EditTeller({ params, searchParams }: { params: Pro
           <div className="flex" style={{ alignItems: "flex-start" }}>
             {!isNew && <div style={{ width: 90, height: 108, border: "1px solid var(--line)", overflow: "hidden" }}><TellerImage teller={t as Teller} /></div>}
             <div className="grow">
-              <input className="input" type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" />
+              <ImageInput name="image" />
               {t.imageUrl && <label className="check mt-1"><input type="checkbox" name="removeImage" />画像を削除してイラストに戻す</label>}
               <p className="small muted mb-0 mt-1">画像未設定時は下のイラストが表示されます。</p>
             </div>
